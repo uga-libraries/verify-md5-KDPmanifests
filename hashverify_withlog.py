@@ -59,7 +59,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
 
                     else: # If they don't match, write the validation results to the log and print an error message to the terminal
                         if orig_md5 == None:
-                            data = [timestamp, file_to_check, "FALSE", "NOT IN MANIFEST", md5_generated]
+                            data = [timestamp, file_to_check, "FALSE", "MISSING FROM MANIFEST", md5_generated]
                             writer.writerow(data)
                             print(f"\n> In directory but missing from manifest: {file_to_check}")
                         else:
@@ -75,7 +75,8 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
             continue
         else:
             orig_md5 = hash_dict.get(key, 'NO MD5 FOUND IN MANIFEST')
-            data = [timestamp, key, "FALSE", orig_md5, "NOT IN CURRENT DIRECTORY"]
+            data = [timestamp, key, "FALSE", orig_md5, "MISSING FROM CURRENT DIRECTORY"]
+            writer.writerow(data)
             print(f"\n> In manifest but missing from directory: {key}")
 
 
