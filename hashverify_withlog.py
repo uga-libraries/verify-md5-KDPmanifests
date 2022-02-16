@@ -59,7 +59,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                     md5_generated = hashlib.md5(data).hexdigest() # Pipe the binary file data to the checksum generator, "hexdigest" returns a typical MD5 string of hexadecimal digits
                     orig_md5 = hash_dict.get(file_to_check, None) # Get the original checksum from the dictionary
                     if md5_generated == orig_md5: # Checks if the new MD5 exactly matches the MD5 from the manifest
-                        data = [timestamp, file_to_check, "TRUE"] # Add it to the log
+                        data = [timestamp, file_to_check, "TRUE", orig_md5, md5_generated] # Add it to the log
                         writer.writerow(data)
                     else:
                         if orig_md5 == None: # Indicates that the file is missing from the manifest altogether
