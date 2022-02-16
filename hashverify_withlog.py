@@ -45,7 +45,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                         cols = line.split('\t')
                         full_filename = cols[0]
                         filename=str(full_filename) #Convert filenames from repr to str for easier matching in the next step
-                        md5 = cols[7]
+                        md5 = cols[6]
                         hash_dict[filename] = md5 # Add filename:checksum pairs to a dictionary
                         continue
             #For all other files in the directory, generate MD5 checksums and compare with the saved checksum in the dictionary.
@@ -58,7 +58,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                     data = f.read()
                     md5_generated = hashlib.md5(data).hexdigest() # Pipe the binary file data to the checksum generator, "hexdigest" returns a typical MD5 string of hexadecimal digits
                     orig_md5 = hash_dict.get(file_to_check, None) # Get the original checksum from the dictionary
-                    if md5_generated == orig_md5: # Checks if the new MD5 exactly matches the MD5 from the manifest
+                    if md5_generated.upper() == orig_md5: # Checks if the new MD5 exactly matches the MD5 from the manifest
                         data = [timestamp, file_to_check, "TRUE", orig_md5, md5_generated] # Add it to the log
                         writer.writerow(data)
                     else:
