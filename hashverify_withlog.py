@@ -30,12 +30,12 @@ print(f'\nAll validation results will be saved to the log file.')
 
 with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log_file: # Create a new CSV validation log in the current accession folder
     writer = csv.writer(log_file)
-    header = ['Timestamp', 'File', 'Checksum_Validated', 'MD5_in_Manifest', 'Current_MD5', 'Error_Message']
+    header = ['Timestamp', 'File', 'ChecksumValidated', 'MD5inManifest', 'CurrentMD5', 'ErrorMessage']
     writer.writerow(header)
     for root, dirs, files in os.walk(dir_to_verify): # Walk through the accession folder
         for file in files:
             fname = str(file).lower()
-            to_skip = ['data-accessioner','dataaccessioner','media-inventory','normalized-filenames','preservation-log','preservation_log','preservationlog','validation_log']
+            to_skip = ['data-accessioner','dataaccessioner','media-inventory','normalized-filenames','preservation.txt','preservation-log','preservation_log','preservationlog','validation_log']
             if any(x in fname for x in to_skip): # Skip over preservation documentation
                 continue
             elif ('manifest' in fname) and (fname.endswith('.txt')): # Identify the manifest file with two conditions
@@ -63,7 +63,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                         writer.writerow(data)
                     else:
                         if orig_md5 == None: # Indicates that the file is missing from the manifest altogether
-                            data = [timestamp, file_to_check, "FALSE", None, md5_generated, "NOT IN MANIFEST"] # Add it to the log
+                            data = [timestamp, file_to_check, "FALSE", None, md5_generated, "Missing from manifest"] # Add it to the log
                             writer.writerow(data)
                             count+=1 
                             print(f'\n\t{count}) IN DIRECTORY BUT MISSING FROM MANIFEST: {file_to_check}')
@@ -82,7 +82,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
         else:
             count+=1
             orig_md5 = hash_dict.get(key, 'NO MD5 FOUND IN MANIFEST') # Get the original MD5 from the manifest to print to the log
-            data = [timestamp, key, "FALSE", orig_md5, None, f'NOT IN DIRECTORY {dir_to_verify}'] # Add it to the log
+            data = [timestamp, key, "FALSE", orig_md5, None, f'Missing from specified directory: {dir_to_verify}'] # Add it to the log
             writer.writerow(data)
             print(f'\n\t{count}) IN MANIFEST BUT MISSING FROM DIRECTORY: {key}')
 
