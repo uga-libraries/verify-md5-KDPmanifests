@@ -30,12 +30,12 @@ print(f'\nAll validation results will be saved to the log file.')
 
 with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log_file: # Create a new CSV validation log in the current accession folder
     writer = csv.writer(log_file)
-    header = ['Timestamp', 'File', 'ChecksumValidated', 'MD5inManifest', 'CurrentMD5', 'ErrorMessage']
+    header = ['Timestamp', 'File', 'ChecksumValidated', 'MD5inManifest', 'CurrentMD5', 'ErrorMessage', 'Notes']
     writer.writerow(header)
     for root, dirs, files in os.walk(dir_to_verify): # Walk through the accession folder
         for file in files:
             fname = str(file).lower()
-            to_skip = ['data-accessioner','dataaccessioner','media-inventory','normalized-filenames','preservation.txt','preservation-log','preservation_log','preservationlog','validation_log']
+            to_skip = ['data-accessioner','dataaccessioner','media-inventory','normalized-filenames','preservation.txt','preservation-log','preservation_log','preservationlog','PreservationLog','validation_log']
             if any(x in fname for x in to_skip): # Skip over preservation documentation
                 continue
             elif ('manifest' in fname) and (fname.endswith('.txt')): # Identify the manifest file with two conditions
@@ -43,24 +43,30 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                 with open(manifest_file, 'r') as manifest: # Open the manifest and read the tabulated data by column 
                     for line in manifest.readlines():
                         cols = line.split('\t')
-                        full_filename = cols[0]
-                        filename=str(full_filename) #Convert filenames from repr to str for easier matching in the next step
-                        md5 = cols[6]
+                        full_filename = cols[0].strip()
+                        file_str = str(full_filename) #Convert filenames from repr to str for easier matching in the next step
+                        filename = file_str.replace('"', '') #Remove random quotations that are around some of the file paths   
+                        md5 = cols[7].strip()
                         hash_dict[filename] = md5 # Add filename:checksum pairs to a dictionary
-                        continue
+                        #continue
             #For all other files in the directory, generate MD5 checksums and compare with the saved checksum in the dictionary.
             else:   
                 timestamp = datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
-                filepath = os.path.join(root, file) 
+                filepath = os.path.join(root, file)
                 file_to_check = str(filepath)
                 files_in_dir.append(file_to_check)
-                with open(filepath, 'rb') as f: # Open the file in readable binary format so it can be funneled to the hashlib MD5 algorithm   
+                if len(file_to_check) > 250:
+                    file_to_check = (f'\\\\?\\{file_to_check}') # Safeguards against OSErrors from file paths that exceed Windows' 260-character max
+                with open(file_to_check, 'rb') as f: # Open the file in readable binary format so it can be funneled to the hashlib MD5 algorithm   
                     data = f.read()
-                    md5_generated = hashlib.md5(data).hexdigest() # Pipe the binary file data to the checksum generator, "hexdigest" returns a typical MD5 string of hexadecimal digits
+                    md5 = hashlib.md5(data).hexdigest() # Pipe the binary file data to the checksum generator, "hexdigest" returns a typical MD5 string of hexadecimal digits
+                    md5_generated = md5.upper()
+                    if file_to_check.startswith('\\\\?\\'):
+                        file_to_check = str(file_to_check[4:])
                     orig_md5 = hash_dict.get(file_to_check, None) # Get the original checksum from the dictionary
-                    if md5_generated.upper() == orig_md5: # Checks if the new MD5 exactly matches the MD5 from the manifest
-                        data = [timestamp, file_to_check, "TRUE", orig_md5, md5_generated] # Add it to the log
-                        writer.writerow(data)
+                    if md5_generated == orig_md5: # Checks if the new MD5 exactly matches the MD5 from the manifest
+                            data = [timestamp, file_to_check, "TRUE", orig_md5, md5_generated] # Add it to the log
+                            writer.writerow(data)
                     else:
                         if orig_md5 == None: # Indicates that the file is missing from the manifest altogether
                             data = [timestamp, file_to_check, "FALSE", None, md5_generated, "Missing from manifest"] # Add it to the log
@@ -68,7 +74,7 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                             count+=1 
                             print(f'\n\t{count}) IN DIRECTORY BUT MISSING FROM MANIFEST: {file_to_check}')
                         else: # This means the checksums don't match
-                            data = [timestamp, file_to_check, "FALSE", orig_md5, md5_generated] # Add it to the log
+                            data = [timestamp, file_to_check, "FALSE", orig_md5, md5_generated, "Checksums do not match"] # Add it to the log
                             writer.writerow(data)
                             count+=1 
                             print(f'\n\t{count}) INVALID CHECKSUM: {file_to_check}')
