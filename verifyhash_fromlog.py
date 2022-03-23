@@ -60,12 +60,12 @@ with open(f'{dir_to_verify}\\post-migration_validation_log_{date}.csv', "w", new
                 file_to_check = str(filepath)
                 files_in_dir.append(file_to_check) # Add it to the running list of all files in the directory
                 if len(file_to_check) > 250:
-                    file_to_check = (f'\\\\?\\{file_to_check}') # Safeguards against OSErrors from file paths that exceed Windows' 260-character max
+                    file_to_check = (f'\\\\?\\{file_to_check}')  # Adds extended-length path prefix to prevent Windows OSErrors from file paths longer than 260 chars
                 with open(filepath, 'rb') as f: # Open the file in readable binary format so it can be funneled to the hashlib MD5 algorithm   
                     data = f.read()
                     md5 = hashlib.md5(data).hexdigest() # Pipe the binary file data to the checksum generator, "hexdigest" returns a typical MD5 string of hexadecimal digits
                     md5_generated = md5.upper() # Format it to match the MD5 in the log
-                    if file_to_check.startswith('\\\\?\\'):
+                    if file_to_check.startswith('\\\\?\\'): # Removes extended-length path prefix for matching purposes
                         file_to_check = str(file_to_check[4:])
                     orig_md5 = hash_dict.get(file_to_check, None) # Get the original checksum from the dictionary
                     if md5_generated == orig_md5: # Check if the new MD5 exactly matches the MD5 from the log
