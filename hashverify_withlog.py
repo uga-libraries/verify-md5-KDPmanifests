@@ -45,10 +45,10 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                         cols = line.split('\t')
                         full_filename = cols[0].strip()
                         file_str = str(full_filename) #Convert filenames from repr to str for easier matching in the next step
-                        filename = file_str.replace('"', '') #Remove random quotations that are around some of the file paths   
+                        filename = file_str.replace('"', '') #Remove quotations that are around some of the file paths   
                         md5 = cols[7].strip()
                         hash_dict[filename] = md5 # Add filename:checksum pairs to a dictionary
-                        #continue
+                        continue
             #For all other files in the directory, generate MD5 checksums and compare with the saved checksum in the dictionary.
             else:   
                 timestamp = datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
@@ -56,17 +56,17 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                 file_to_check = str(filepath)
                 files_in_dir.append(file_to_check)
                 if len(file_to_check) > 250:
-                    file_to_check = (f'\\\\?\\{file_to_check}') # Safeguards against OSErrors from file paths that exceed Windows' 260-character max
+                    file_to_check = (f'\\\\?\\{file_to_check}') # Adds extended-length path prefix to prevent Windows OSErrors from file paths longer than 260 chars
                 with open(file_to_check, 'rb') as f: # Open the file in readable binary format so it can be funneled to the hashlib MD5 algorithm   
                     data = f.read()
                     md5 = hashlib.md5(data).hexdigest() # Pipe the binary file data to the checksum generator, "hexdigest" returns a typical MD5 string of hexadecimal digits
                     md5_generated = md5.upper()
-                    if file_to_check.startswith('\\\\?\\'):
+                    if file_to_check.startswith('\\\\?\\'): # Removes extended-length path prefix for matching purposes
                         file_to_check = str(file_to_check[4:])
                     orig_md5 = hash_dict.get(file_to_check, None) # Get the original checksum from the dictionary
                     if md5_generated == orig_md5: # Checks if the new MD5 exactly matches the MD5 from the manifest
-                            data = [timestamp, file_to_check, "TRUE", orig_md5, md5_generated] # Add it to the log
-                            writer.writerow(data)
+                        data = [timestamp, file_to_check, "TRUE", orig_md5, md5_generated] # Add it to the log
+                        writer.writerow(data)
                     else:
                         if orig_md5 == None: # Indicates that the file is missing from the manifest altogether
                             data = [timestamp, file_to_check, "FALSE", None, md5_generated, "Missing from manifest"] # Add it to the log
