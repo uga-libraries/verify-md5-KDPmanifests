@@ -35,7 +35,7 @@ with open(f'{dir_to_verify}\\post-migration_validation_log_{date}.csv', "w", new
     for root, dirs, files in os.walk(dir_to_verify): # Walk through the accession folder
         for file in files:
             fname = str(file).lower()
-            to_skip = ['data-accessioner','dataaccessioner', 'manifest.txt', 'media-inventory','normalized-filenames','post-migration', 'preservation.txt','preservation-log','preservation_log','PreservationLog','preservationlog']
+            to_skip = ['data-accessioner','dataaccessioner','_er.xml','_inventory.xlsx','manifest.txt','media-inventory','normalized-filenames','post-migration','preservation.txt','preservation-log','preservation_log','preservationlog']
             if any(x in fname for x in to_skip): # Skip over as much preservation documentation as possible
                 continue
             elif (fname.startswith('validation_log')) and (fname.endswith('.csv')): # Identify the log file with two conditions
