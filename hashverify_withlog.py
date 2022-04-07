@@ -25,6 +25,9 @@ invalid = []
 # An empty list to hold the names of all files in the current directory
 files_in_dir = []
 
+# A list of substrings that indicate a file is skippable preservation documentation
+to_skip = ["data-accessioner","dataaccessioner","_er.xml","_inventory.xlsx","media-inventory","normalized-filenames","preservation.txt","preservation-log","preservation_log","preservationlog", "removalsheet", "validation_log"]
+
 count = 0
 print(f'\nAll validation results will be saved to the log file.')
 
@@ -50,7 +53,6 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", encoding="utf-8", 
     for root, dirs, files in os.walk(dir_to_verify): # Walk through the accession folder
         for file in files:
             fname = str(file).lower()
-            to_skip = ["data-accessioner","dataaccessioner","_er.xml","_inventory.xlsx","media-inventory","normalized-filenames","preservation.txt","preservation-log","preservation_log","preservationlog", "removalsheet", "validation_log"]
             if any(x in fname for x in to_skip): # Skip over preservation documentation
                 pass
             else:   
