@@ -28,17 +28,14 @@ files_in_dir = []
 count = 0
 print(f'\nAll validation results will be saved to the log file.')
 
-with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log_file: # Create a new CSV validation log in the current accession folder
+with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", encoding="utf-8", newline='') as log_file: # Create a new CSV validation log in the current accession folder, UTF-8 encoding handles any special characters
     writer = csv.writer(log_file)
     header = ['Timestamp', 'File', 'ChecksumValidated', 'MD5inManifest', 'CurrentMD5', 'ErrorMessage', 'Notes']
     writer.writerow(header)
     for root, dirs, files in os.walk(dir_to_verify): # Walk through the accession folder
         for file in files:
             fname = str(file).lower()
-            to_skip = ['data-accessioner','dataaccessioner','_er.xml','_inventory.xlsx','media-inventory','normalized-filenames','preservation.txt','preservation-log','preservation_log','preservationlog','validation_log']
-            if any(x in fname for x in to_skip): # Skip over preservation documentation
-                continue
-            elif ('manifest' in fname) and (fname.endswith('.txt')): # Identify the manifest file with two conditions
+            if ('manifest' in fname) and (fname.endswith('.txt')): # Identify the manifest file with two conditions
                 manifest_file = os.path.join(root, file)
                 with open(manifest_file, 'r') as manifest: # Open the manifest and read the tabulated data by column 
                     for line in manifest.readlines():
@@ -49,7 +46,13 @@ with open(f'{dir_to_verify}\\validation_log_{date}.csv', "w", newline='') as log
                         md5 = cols[7].strip()
                         hash_dict[filename] = md5 # Add filename:checksum pairs to a dictionary
                         continue
-            #For all other files in the directory, generate MD5 checksums and compare with the saved checksum in the dictionary.
+    #For all other files in the directory, generate MD5 checksums and compare with the saved checksum in the dictionary.
+    for root, dirs, files in os.walk(dir_to_verify): # Walk through the accession folder
+        for file in files:
+            fname = str(file).lower()
+            to_skip = ["data-accessioner","dataaccessioner","_er.xml","_inventory.xlsx","media-inventory","normalized-filenames","preservation.txt","preservation-log","preservation_log","preservationlog", "removalsheet", "validation_log"]
+            if any(x in fname for x in to_skip): # Skip over preservation documentation
+                pass
             else:   
                 timestamp = datetime.now().strftime("%Y-%m-%d, %H:%M:%S")
                 filepath = os.path.join(root, file)
